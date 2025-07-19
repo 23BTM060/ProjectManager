@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>23BTM060 - Project Manager</title>
+  <link rel="stylesheet" href="styles\global.css">
+  <style>
+    /* Page-specific styles */
+    #heading {
+      font-size: 2.5rem;
+      color: var(--accent-color);
+      margin-bottom: 1rem;
+    }
+
+    #maincontent p {
+      font-size: 1.1rem;
+      max-width: 600px;
+      margin: 0 auto;
+      color: #cccccc;
+      line-height: 1.6;
+    }
+
+    #temp {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 2rem;
+    }
+
+    .section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 2rem 1rem;
+    }
+
+    .section p {
+      font-size: 1.1rem;
+      color: #cccccc;
+      max-width: 600px;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 600px) {
+      #temp {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav>
+    <a href="Landing_page.html"><img src="https://placehold.co/70x35" alt="Logo" /></a>
+    <ul>
+      <li><a href="Landing_page.html">Home</a></li>
+      <li><a href="Dashboard.html">Dashboard</a></li>
+      <li><a href="reviews.html">Reviews</a></li>
+      <li><a href="about.html">About Us</a></li>
+    </ul>
+  </nav>
+
+  <div id="maincontent">
+    <div id="temp">
+      <div>
+        <h1 id="heading">Manage Your Projects Easily</h1>
+        <p>Automate your daily tasks and manage them as projects to boost your productivity. Stay organized, stay ahead.
+        </p>
+      </div>
+      <div id="Logo">
+        <img src="https://placehold.co/300x200" alt="Project Logo" />
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-heading">Built For Individuals and Modern Teams</h2>
+    <p>Whether you're a solo freelancer or part of a high-functioning team, our tool adapts to your workflow seamlessly.
+    </p>
+  </div>
+
+  <div class="section">
+    <p>Start Your WorkSync Journey today by signing up for our services</p>
+
+    <form id="signupBar">
+      <h2>Sign Up</h2>
+      <div class="input-group">
+        <label for="UserName">Username:</label>
+        <input type="text" id="UserName" name="UserName" required />
+      </div>
+      <div class="input-group">
+        <label for="Password">Password:</label>
+        <input type="password" id="Password" name="Password" required />
+      </div>
+      <div class="input-group">
+        <label for="ConfirmPassword">Confirm Password:</label>
+        <input type="password" id="ConfirmPassword" name="ConfirmPassword" required />
+      </div>
+      <button type="submit">Register</button>
+    </form>
+  </div>
+  
+
+    <script>
+      document.getElementById('signupBar').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const UserName = document.getElementById('UserName').value;
+        const Password = document.getElementById('Password').value;
+
+        const res = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ UserName, Password }),
+        });
+
+        const msg = await res.text();
+        alert(msg);
+      });
+    </script>
+</body>
+
+</html>

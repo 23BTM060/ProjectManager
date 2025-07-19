@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>About Us - Project Manager</title>
+    <link rel="stylesheet" href="styles/global.css" />
+    <style>
+      /* About-specific styles */
+      .about-container {
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 3rem;
+      }
+
+      .about-intro {
+        text-align: center;
+      }
+
+      .about-intro h1 {
+        color: var(--accent-color);
+        font-size: 2rem;
+        margin-bottom: 1rem;
+      }
+
+      .about-intro p {
+        max-width: 700px;
+        margin: 0 auto;
+        color: var(--secondary-color);
+        font-size: 1.1rem;
+        line-height: 1.6;
+      }
+
+      .team-section {
+        text-align: center;
+      }
+
+      .team-section h2 {
+        color: var(--accent-color);
+        font-size: 1.8rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .team-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 2rem;
+        justify-items: center;
+      }
+
+      .team-member {
+        background-color: var(--form-bg);
+        padding: 1rem;
+        border-radius: 8px;
+        width: 100%;
+        max-width: 220px;
+      }
+
+      .team-member img {
+        width: 100%;
+        border-radius: 50%;
+        margin-bottom: 0.8rem;
+      }
+
+      .team-member h4 {
+        color: var(--foreground-color);
+        margin-bottom: 0.3rem;
+      }
+
+      .team-member p {
+        font-size: 0.9rem;
+        color: var(--secondary-color);
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <a href="Landing_page.html"><img src="https://placehold.co/70x35" alt="Logo" /></a>
+      <ul>
+        <li><a href="Landing_page.html">Home</a></li>
+        <li><a href="dashboard.html">Dashboard</a></li>
+        <li><a href="reviews.html">Reviews</a></li>
+        <li><a href="about.html">About Us</a></li>
+      </ul>
+    </nav>
+
+    <main class="about-container">
+      <section class="about-intro">
+        <h1>About Our Product</h1>
+        <p>We are a passionate team dedicated to helping individuals and teams manage their projects with clarity and efficiency. Our goal is to empower productivity through clean design and intuitive features — so you can focus on what matters most.</p>
+      </section>
+
+      <section class="team-section">
+        <h2>Meet the Team</h2>
+        <div class="team-grid">
+          <div class="team-member">
+            <img src="https://placehold.co/150" alt="Member 1" />
+            <h4>Vansh Kodinariya</h4>
+            <p>Frontend Developer</p>
+          </div>
+          <div class="team-member">
+            <img src="https://placehold.co/150" alt="Member 2" />
+            <h4>Ayesha R.</h4>
+            <p>UI/UX Designer</p>
+          </div>
+          <div class="team-member">
+            <img src="https://placehold.co/150" alt="Member 3" />
+            <h4>Yash M.</h4>
+            <p>Backend Developer</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
