@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard - Project Manager</title>
+  <link rel="stylesheet" href="styles/global.css" />
+  <style>
+    .dashboard-container { padding: 2rem; display: flex; flex-direction: column; gap: 2rem; }
+    .dashboard-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+    .dashboard-header h1 { font-size: 2rem; color: var(--accent-color); }
+    .filter-bar { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .filter-bar select, .filter-bar input { padding: 6px 10px; font-size: 1rem; }
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
+    .project-card { background-color: var(--form-bg); padding: 1rem; border-radius: 8px; box-shadow: 0 0 5px rgba(0,0,0,0.3); display: flex; flex-direction: column; gap: 0.5rem; cursor: pointer; transition: box-shadow 0.2s; position: relative; }
+    .project-card.expanded { grid-column: span 2; background: #23272f; z-index: 2; }
+    .project-title { font-weight: bold; color: var(--foreground-color); font-size: 1.1rem; }
+    .status-label { font-size: 0.9rem; color: var(--secondary-color); }
+    .project-actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+    .project-actions button { font-size: 0.8rem; padding: 2px 8px; }
+    .task-board { display: flex; gap: 1rem; margin-top: 1rem; }
+    .task-column { flex: 1; background: #181c22; border-radius: 6px; padding: 1rem; min-width: 200px; }
+    .task-column h4 { text-align: center; color: var(--accent-color); }
+    .task-list { min-height: 40px; }
+    .task-card { background: #23272f; margin: 0.5rem 0; padding: 0.5rem; border-radius: 6px; cursor: grab; display: flex; flex-direction: column; gap: 0.3rem; }
+    .task-title { font-weight: bold; }
+    .task-actions {
+      display: none;
+      gap: 0.5rem;
+      margin-top: 0.3rem;
+    }
+    .task-card.selected .task-actions {
+      display: flex;
+    }
+    .priority-dot {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    .priority-low { background: #27ae60; }
+    .priority-medium { background: #f1c40f; }
+    .priority-high { background: #e74c3c; }
+    @media (max-width: 900px) { .task-board { flex-direction: column; } }
+    @media (max-width: 600px) {
+      .dashboard-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+      .card-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="Landing_page.html"><img src="https://placehold.co/70x35" alt="Logo" /></a>
+    <button class="nav-toggle" aria-label="Open navigation menu">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7zm7.43-2.06c.04-.3.07-.61.07-.94s-.03-.64-.07-.94l2.11-1.65a.5.5 0 0 0 .12-.64l-2-3.46a.5.5 0 0 0-.6-.22l-2.49 1a7.03 7.03 0 0 0-1.63-.94l-.38-2.65A.5.5 0 0 0 13 2h-4a.5.5 0 0 0-.5.42l-.38 2.65c-.6.23-1.17.54-1.7.9l-2.49-1a.5.5 0 0 0-.6.22l-2 3.46a.5.5 0 0 0 .12.64l2.11 1.65c-.04.3-.07.61-.07.94s.03.64.07.94l-2.11 1.65a.5.5 0 0 0-.12.64l2 3.46a.5.5 0 0 0 .6.22l2.49-1c.51.36 1.06.67 1.63.94l.38 2.65A.5.5 0 0 0 9 22h4a.5.5 0 0 0 .5-.42l.38-2.65c.6-.23 1.17-.54 1.7-.9l2.49 1a.5.5 0 0 0 .6-.22l2-3.46a.5.5 0 0 0-.12-.64l-2.11-1.65z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <ul>
+      <li><a href="Landing_page.html">Home</a></li>
+      <li><a href="Dashboard.html">Dashboard</a></li>
+      <li><a href="reviews.html">Reviews</a></li>
+      <li><a href="about.html">About Us</a></li>
+    </ul>
+  </nav>
+
+  <main class="dashboard-container">
+    <div class="dashboard-header">
+      <h1>Welcome, <span id="username"></span></h1>
+      <button class="logout-btn" id="logoutBtn">Logout</button>
+    </div>
+    <div class="filter-bar">
+      <select id="typeFilter"><option value="">All Types</option></select>
+      <select id="priorityFilter">
+        <option value="">All Priorities</option>
+        <option value="Low">Low</option>
+        <option value="Medium">Medium</option>
+        <option value="High">High</option>
+      </select>
+      <input type="text" id="searchInput" placeholder="Search by name..." />
+      <button id="addProjectBtn">+ Add Project</button>
+    </div>
+    <div class="card-grid" id="projectGrid"></div>
+    <form class="add-form" id="addProjectForm" style="display:none;">
+      <h3>Add Project</h3>
+      <input type="text" id="newProjectName" placeholder="Project Name" required />
+      <input type="text" id="newProjectType" placeholder="Type (e.g. Personal, Work)" required />
+      <select id="newProjectPriority" required>
+        <option value="">Priority</option>
+        <option value="Low">Low</option>
+        <option value="Medium">Medium</option>
+        <option value="High">High</option>
+      </select>
+      <textarea id="newProjectDesc" placeholder="Description"></textarea>
+      <button type="submit">Add</button>
+      <button type="button" id="cancelAddProject">Cancel</button>
+    </form>
+    <form class="edit-form" id="editProjectForm" style="display:none;">
+      <h3>Edit Project</h3>
+      <input type="hidden" id="editProjectIndex" />
+      <input type="text" id="editProjectName" placeholder="Project Name" required />
+      <input type="text" id="editProjectType" placeholder="Type" required />
+      <select id="editProjectPriority" required>
+        <option value="">Priority</option>
+        <option value="Low">Low</option>
+        <option value="Medium">Medium</option>
+        <option value="High">High</option>
+      </select>
+      <textarea id="editProjectDesc" placeholder="Description"></textarea>
+      <button type="submit">Save</button>
+      <button type="button" id="cancelEditProject">Cancel</button>
+    </form>
+    <!-- Add Task Modal (popup style) -->
+    <div id="addTaskModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+      <form class="add-task-form" id="addTaskForm" style="background:#23272f; border-radius:8px; padding:2rem; min-width:300px; max-width:90vw; margin:auto;">
+        <h3>Add Task</h3>
+        <input type="hidden" id="addTaskProjectIdx" />
+        <input type="text" id="newTaskTitle" placeholder="Task Title" required />
+        <select id="newTaskPriority" required>
+          <option value="">Priority</option>
+          <option value="Low">Low</option>
+          <option value="Medium">Medium</option>
+          <option value="High">High</option>
+        </select>
+        <textarea id="newTaskDesc" placeholder="Description"></textarea>
+        <div id="remindersContainer">
+          <label>Reminders:</label>
+          <input type="date" class="reminderInput" />
+        </div>
+        <button type="button" id="addReminderBtn">+ Add Reminder</button>
+        <button type="submit">Add</button>
+        <button type="button" id="cancelAddTask">Cancel</button>
+      </form>
+    </div>
+    <!-- Edit Task Modal -->
+    <form class="edit-task-form" id="editTaskForm" style="display:none;">
+      <h3>Edit Task</h3>
+      <input type="hidden" id="editTaskProjectIdx" />
+      <input type="hidden" id="editTaskIdx" />
+      <input type="text" id="editTaskTitle" placeholder="Task Title" required />
+      <select id="editTaskPriority" required>
+        <option value="">Priority</option>
+        <option value="Low">Low</option>
+        <option value="Medium">Medium</option>
+        <option value="High">High</option>
+      </select>
+      <textarea id="editTaskDesc" placeholder="Description"></textarea>
+      <input type="date" id="editTaskReminder" />
+      <select id="editTaskStatus" required>
+        <option value="Pending">Pending</option>
+        <option value="Progress">Progress</option>
+        <option value="Done">Done</option>
+      </select>
+      <button type="submit">Save</button>
+      <button type="button" id="cancelEditTask">Cancel</button>
+    </form>
+  </main>
+  <script>
+    // Hamburger menu toggle
+    const navToggle = document.querySelector('.nav-toggle');
+    const navUl = document.querySelector('nav ul');
+    navToggle.addEventListener('click', function () {
+      navUl.classList.toggle('nav-open');
+      navToggle.classList.toggle('open');
+    });
+
+    // Auth check
+    const username = localStorage.getItem('loggedInUser');
+    if (!username) window.location.href = 'Landing_page.html';
+    document.getElementById('username').textContent = username;
+
+    // Logout
+    document.getElementById('logoutBtn').onclick = function () {
+      localStorage.removeItem('loggedInUser');
+      window.location.href = 'Landing_page.html';
+    };
+
+    // State
+    let allProjects = [];
+    let expandedIndex = null;
+    let allTypes = new Set();
+
+    // Fetch projects
+    function fetchProjects() {
+      fetch(`/api/projects/${username}`)
+        .then(res => res.json())
+        .then(projects => {
+          allProjects = projects;
+          allTypes = new Set(projects.map(p => p.type).filter(Boolean));
+          renderTypeFilter();
+          renderProjects();
+        });
+    }
+
+    // Render type filter options
+    function renderTypeFilter() {
+      const typeFilter = document.getElementById('typeFilter');
+      typeFilter.innerHTML = `<option value="">All Types</option>`;
+      allTypes.forEach(type => {
+        typeFilter.innerHTML += `<option value="${type}">${type}</option>`;
+      });
+    }
+
+    // Render projects
+    function renderProjects() {
+      const grid = document.getElementById('projectGrid');
+      const typeVal = document.getElementById('typeFilter').value;
+      const priorityVal = document.getElementById('priorityFilter').value;
+      const searchVal = document.getElementById('searchInput').value.toLowerCase();
+
+      let filtered = allProjects.filter(p =>
+        (!typeVal || p.type === typeVal) &&
+        (!priorityVal || p.priority === priorityVal) &&
+        (!searchVal || p.name.toLowerCase().includes(searchVal))
+      );
+
+      grid.innerHTML = '';
+      filtered.forEach((proj, idx) => {
+        grid.innerHTML += `
+          <div class="project-card${expandedIndex === idx ? ' expanded' : ''}" data-idx="${idx}">
+            <div class="project-title">${proj.name}</div>
+            <div class="status-label">${proj.type || ''} | ${proj.priority || ''}</div>
+            <div>${proj.description || ''}</div>
+            <div class="project-actions">
+              <button onclick="editProject(${idx});event.stopPropagation();">Edit</button>
+              <button onclick="deleteProject(${idx});event.stopPropagation();">Delete</button>
+            </div>
+            ${expandedIndex === idx ? renderTaskBoard(proj, idx) : ''}
+          </div>
+        `;
+      });
+
+      // Add click listeners for expand/collapse
+      document.querySelectorAll('.project-card').forEach(card => {
+        card.onclick = function () {
+          const idx = Number(card.getAttribute('data-idx'));
+          expandedIndex = expandedIndex === idx ? null : idx;
+          renderProjects();
+        };
+      });
+    }
+
+    // Track selected task for showing actions
+    let selectedTask = { projIdx: null, tIdx: null };
+
+    // Render Kanban-style task board for expanded project
+    function renderTaskBoard(proj, projIdx) {
+      const statuses = ['Pending', 'Progress', 'Done'];
+      let html = `<div class="task-board">`;
+      statuses.forEach(status => {
+        html += `<div class="task-column" data-status="${status}" ondragover="event.preventDefault()" ondrop="onTaskDrop(event,${projIdx},'${status}')">
+          <h4>${status}</h4>
+          <div class="task-list">`;
+        if (proj.tasks && proj.tasks.length) {
+          proj.tasks.forEach((task, tIdx) => {
+            if (task.status === status) {
+              // Priority dot color
+              let dotClass = 'priority-low';
+              if (task.priority === 'Medium') dotClass = 'priority-medium';
+              if (task.priority === 'High') dotClass = 'priority-high';
+              const isSelected = selectedTask.projIdx === projIdx && selectedTask.tIdx === tIdx;
+              html += `<div class="task-card${isSelected ? ' selected' : ''}" draggable="true"
+                ondragstart="onTaskDrag(event,${projIdx},${tIdx})"
+                data-taskidx="${tIdx}"
+                onclick="selectTask(event,${projIdx},${tIdx})">
+                <span class="priority-dot ${dotClass}"></span>
+                <span class="task-title">${task.title || task.name}</span>
+                <div>${task.description || ''}</div>
+                <div>
+                  ${Array.isArray(task.reminders) ? task.reminders.filter(Boolean).map(r => `<span style="font-size:0.9em;">🔔 ${r}</span>`).join(' ') : ''}
+                </div>
+                <div class="task-actions">
+                  <button onclick="editTask(${projIdx},${tIdx});event.stopPropagation();">Edit</button>
+                  <button onclick="deleteTask(${projIdx},${tIdx});event.stopPropagation();">Delete</button>
+                </div>
+              </div>`;
+            }
+          });
+        }
+        html += `</div>
+          <button onclick="showAddTaskForm(${projIdx},'${status}');event.stopPropagation();">+ Add Task</button>
+        </div>`;
+      });
+      html += `</div>`;
+      return html;
+    }
+
+    // Select task to show actions
+    window.selectTask = function(event, projIdx, tIdx) {
+      event.stopPropagation();
+      if (selectedTask.projIdx === projIdx && selectedTask.tIdx === tIdx) {
+        selectedTask = { projIdx: null, tIdx: null };
+      } else {
+        selectedTask = { projIdx, tIdx };
+      }
+      renderProjects();
+    };
+
+    // Deselect task when clicking outside
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.task-card')) {
+        selectedTask = { projIdx: null, tIdx: null };
+        renderProjects();
+      }
+    });
+
+    // Add/Edit/Delete Project
+    document.getElementById('addProjectBtn').onclick = function () {
+      document.getElementById('addProjectForm').style.display = 'flex';
+    };
+    document.getElementById('cancelAddProject').onclick = function () {
+      document.getElementById('addProjectForm').reset();
+      document.getElementById('addProjectForm').style.display = 'none';
+    };
+    document.getElementById('addProjectForm').onsubmit = function (e) {
+      e.preventDefault();
+      const name = document.getElementById('newProjectName').value.trim();
+      const type = document.getElementById('newProjectType').value.trim();
+      const priority = document.getElementById('newProjectPriority').value;
+      const description = document.getElementById('newProjectDesc').value.trim();
+      fetch('/api/projects/' + username, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, type, priority, description })
+      }).then(res => res.json()).then(() => {
+        document.getElementById('addProjectForm').reset();
+        document.getElementById('addProjectForm').style.display = 'none';
+        fetchProjects();
+      });
+    };
+
+    window.editProject = function(idx) {
+      const proj = allProjects[idx];
+      document.getElementById('editProjectIndex').value = idx;
+      document.getElementById('editProjectName').value = proj.name;
+      document.getElementById('editProjectType').value = proj.type;
+      document.getElementById('editProjectPriority').value = proj.priority;
+      document.getElementById('editProjectDesc').value = proj.description || '';
+      document.getElementById('editProjectForm').style.display = 'flex';
+    };
+    document.getElementById('cancelEditProject').onclick = function () {
+      document.getElementById('editProjectForm').reset();
+      document.getElementById('editProjectForm').style.display = 'none';
+    };
+    document.getElementById('editProjectForm').onsubmit = function (e) {
+      e.preventDefault();
+      const idx = document.getElementById('editProjectIndex').value;
+      const name = document.getElementById('editProjectName').value.trim();
+      const type = document.getElementById('editProjectType').value.trim();
+      const priority = document.getElementById('editProjectPriority').value;
+      const description = document.getElementById('editProjectDesc').value.trim();
+      fetch(`/api/projects/${username}/${idx}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, type, priority, description })
+      }).then(res => res.json()).then(() => {
+        document.getElementById('editProjectForm').reset();
+        document.getElementById('editProjectForm').style.display = 'none';
+        fetchProjects();
+      });
+    };
+
+    window.deleteProject = function(idx) {
+      if (!confirm('Delete this project?')) return;
+      fetch(`/api/projects/${username}/${idx}`, { method: 'DELETE' })
+        .then(res => res.json())
+        .then(() => fetchProjects());
+    };
+
+    // Add/Edit/Delete Task UI
+    window.showAddTaskForm = function(projIdx, status) {
+      document.getElementById('addTaskProjectIdx').value = projIdx;
+      document.getElementById('newTaskTitle').value = '';
+      document.getElementById('newTaskPriority').value = '';
+      document.getElementById('newTaskDesc').value = '';
+      // Clear reminders
+      const remindersContainer = document.getElementById('remindersContainer');
+      remindersContainer.innerHTML = '<label>Reminders:</label><input type="date" class="reminderInput" />';
+      document.getElementById('addTaskModal').style.display = 'flex';
+      document.getElementById('addTaskForm').dataset.status = status;
+    };
+    document.getElementById('cancelAddTask').onclick = function () {
+      document.getElementById('addTaskForm').reset();
+      document.getElementById('addTaskModal').style.display = 'none';
+    };
+    document.getElementById('addReminderBtn').onclick = function (e) {
+      e.preventDefault();
+      const remindersContainer = document.getElementById('remindersContainer');
+      const input = document.createElement('input');
+      input.type = 'date';
+      input.className = 'reminderInput';
+      remindersContainer.appendChild(input);
+    };
+    document.getElementById('addTaskForm').onsubmit = function (e) {
+      e.preventDefault();
+      const projIdx = document.getElementById('addTaskProjectIdx').value;
+      const title = document.getElementById('newTaskTitle').value.trim();
+      const priority = document.getElementById('newTaskPriority').value;
+      const description = document.getElementById('newTaskDesc').value.trim();
+      const status = document.getElementById('addTaskForm').dataset.status || 'Pending';
+      const reminders = Array.from(document.querySelectorAll('.reminderInput')).map(i => i.value).filter(Boolean);
+      fetch(`/api/projects/${username}/${projIdx}/tasks`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, priority, description, reminders, status })
+      }).then(res => res.json()).then(() => {
+        document.getElementById('addTaskForm').reset();
+        document.getElementById('addTaskModal').style.display = 'none';
+        fetchProjects();
+      });
+    };
+
+    window.editTask = function(projIdx, tIdx) {
+      const task = allProjects[projIdx].tasks[tIdx];
+      document.getElementById('editTaskProjectIdx').value = projIdx;
+      document.getElementById('editTaskIdx').value = tIdx;
+      document.getElementById('editTaskTitle').value = task.title || task.name;
+      document.getElementById('editTaskPriority').value = task.priority || '';
+      document.getElementById('editTaskDesc').value = task.description || '';
+      document.getElementById('editTaskReminder').value = task.reminder || '';
+      document.getElementById('editTaskStatus').value = task.status || 'Pending';
+      document.getElementById('editTaskForm').style.display = 'flex';
+    };
+    document.getElementById('cancelEditTask').onclick = function () {
+      document.getElementById('editTaskForm').reset();
+      document.getElementById('editTaskForm').style.display = 'none';
+    };
+    document.getElementById('editTaskForm').onsubmit = function (e) {
+      e.preventDefault();
+      const projIdx = document.getElementById('editTaskProjectIdx').value;
+      const tIdx = document.getElementById('editTaskIdx').value;
+      const title = document.getElementById('editTaskTitle').value.trim();
+      const priority = document.getElementById('editTaskPriority').value;
+      const description = document.getElementById('editTaskDesc').value.trim();
+      const reminder = document.getElementById('editTaskReminder').value;
+      const status = document.getElementById('editTaskStatus').value;
+      fetch(`/api/projects/${username}/${projIdx}/tasks/${tIdx}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, priority, description, reminder, status })
+      }).then(res => res.json()).then(() => {
+        document.getElementById('editTaskForm').reset();
+        document.getElementById('editTaskForm').style.display = 'none';
+        fetchProjects();
+      });
+    };
+
+    window.deleteTask = function(projIdx, tIdx) {
+      if (!confirm('Delete this task?')) return;
+      fetch(`/api/projects/${username}/${projIdx}/tasks/${tIdx}`, { method: 'DELETE' })
+        .then(res => res.json())
+        .then(() => fetchProjects());
+    };
+
+    // Drag and drop
+    window.onTaskDrag = function(event, projIdx, tIdx) {
+      event.dataTransfer.setData('text/plain', JSON.stringify({ projIdx, tIdx }));
+      // highlight columns
+      document.querySelectorAll('.task-column').forEach(col => col.classList.add('drag-over'));
+    };
+    window.onTaskDrop = function(event, projIdx, newStatus) {
+      event.preventDefault();
+      document.querySelectorAll('.task-column').forEach(col => col.classList.remove('drag-over'));
+      const { projIdx: fromProjIdx, tIdx } = JSON.parse(event.dataTransfer.getData('text/plain'));
+      if (projIdx != fromProjIdx) return; // Only allow within same project
+      fetch(`/api/projects/${username}/${projIdx}/tasks/${tIdx}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      }).then(res => res.json()).then(() => fetchProjects());
+    };
+
+    // Filters
+    document.getElementById('typeFilter').onchange =
+    document.getElementById('priorityFilter').onchange =
+    document.getElementById('searchInput').oninput = function () {
+      renderProjects();
+    };
+
+    // Initial load
+    fetchProjects();
+  </script>
+</body>
+</html>
